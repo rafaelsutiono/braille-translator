@@ -20,9 +20,6 @@ def read_pos_files(grammar_dir):
         'NN': 'NN.txt',
         'IN': 'IN.txt',
         'Aux': 'Axv.txt',
-        'WH': 'WH.txt',
-        'PRP': 'PRP.txt',
-        'TO': 'TO.txt',
     }
 
     lexicon = {}
@@ -57,12 +54,11 @@ def construct_grammar(lexicon):
     Vt=transitive verb, NN=noun, IN=preposition
     '''
     grammar_rules = """
-    S -> WH SSub
-    SSub -> IN S
     S -> NP VP
+    VP -> Vi
     VP -> Vt NP
-    VP -> Vt TO Vi
-    NP -> PRP
+    VP -> Aux VP
+    VP -> VP PP
     NP -> DT NN
     NP -> NP PP
     PP -> IN NP
@@ -125,7 +121,7 @@ def main():
 
     # Define sample sentences
     sentences = [
-        "i tried to eat the computer",
+        "A door could open",
     ]
 
     # Parse each sentence and translate to Braille
