@@ -18,8 +18,10 @@ def read_pos_files(grammar_dir):
         'Vt': 'Vt.txt',
         'DT': 'DT.txt',
         'NN': 'NN.txt',
+        'PRP': 'PRP.txt',
         'IN': 'IN.txt',
         'Aux': 'Axv.txt',
+        'Adv': 'Adv.txt',
     }
 
     lexicon = {}
@@ -51,17 +53,36 @@ def construct_grammar(lexicon):
     '''
     S=sentence, VP=verb phrase, NP=noun phrase,
     PP=prepositional phrase, DT=determiner, Vi=intransitive verb,
-    Vt=transitive verb, NN=noun, IN=preposition
+    Vt=transitive verb, NN=noun, PRP =Pronoun, IN=preposition
     '''
     grammar_rules = """
-    S -> NP VP
+    S -> NP VP 
+    S -> S and S
+    S -> NP Aux not VP
+
     VP -> Vi
     VP -> Vt NP
+    VP -> Vt Adv
     VP -> Aux VP
-    VP -> VP PP
+    VP -> Adj VP
+    VP -> Aux not VP
+    VP -> Vt PP
+    VP -> VP and VP
+    VP -> VP not VP
+    VP -> to VP
+
     NP -> DT NN
     NP -> NP PP
+    NP -> NN
+    NP -> NP and NP
+    NP -> DT Adj NN
+    NP -> PRP NN
+
     PP -> IN NP
+    PP -> IN VP
+
+    not -> 'not'
+    and -> 'and'
     """
 
     # Add terminal productions from lexicon
@@ -91,7 +112,7 @@ def parse_sentence(parser, sentence):
         for idx, tree in enumerate(parse_trees, 1):
             print(f"\nParse Tree {idx}:")
             print(tree)
-            tree.draw()
+            # tree.draw()
         return sentence  # Return the sentence for translation
 
 def main():
@@ -121,7 +142,22 @@ def main():
 
     # Define sample sentences
     sentences = [
-        "A door could open",
+        # S -> NP VP
+        "The cat sits",
+
+        # S -> S and S
+        "The cat sat and the dog barked",
+
+        # S -> NP Aux not VP
+        "The cat did not sit",
+
+        "The cat did not sit",
+
+        "The cat will not eat food",
+        # 'The cat wants to eat food',
+        'The cat sucks at eating food',
+
+        'The cat will not eat its food',
     ]
 
     # Parse each sentence and translate to Braille
@@ -138,3 +174,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
