@@ -2,6 +2,7 @@
 
 # Define Grade 1 Braille mappings (letters and basic punctuation)
 GRADE1_BRAILLE = {
+    # Alphabets
     'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑',
     'f': '⠋', 'g': '⠛', 'h': '⠓', 'i': '⠊', 'j': '⠚',
     'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕',
@@ -9,35 +10,52 @@ GRADE1_BRAILLE = {
     'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽',
     'z': '⠵',
     ' ': '⠀',
-    '.': '⠲', ',': '⠂', ';': '⠆', ':': '⠒', '!': '⠖',
-    '(': '⠶', ')': '⠶', '?': '⠦', '\'': '⠄', '-': '⠤',
-    '"': '⠶', '/': '⠌', '@': '⠈', '#': '⠼', '*': '⠔',
+
+    # Punctuation
+    # '.': '⠲', ',': '⠂', ';': '⠆', ':': '⠒', '!': '⠖',
+    # '(': '⠶', ')': '⠶', '?': '⠦', '\'': '⠄', '-': '⠤',
+    # '"': '⠶', '/': '⠌', '@': '⠈', '#': '⠼', '*': '⠔',
 }
+
+BRAILLE_NUMBERS = {
+    # Numbers
+    '0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙',
+    '5': '⠑', '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊',
+}
+
+# Reverse the dictionary for decoding
+BRAILLE_TO_GRADE1 = {v: k for k, v in GRADE1_BRAILLE.items()}
 
 # Define some common Grade 2 Braille contractions
 GRADE2_CONTRACTIONS = {
     'and': '⠯',
     'for': '⠿',
     'the': '⠮',
-    'with': '⠱',
+    'with': '⠾',  
     'of': '⠷',
-    'to': '⠞',
+    'to': '⠞⠕', 
     'but': '⠃',
     'can': '⠉',
     'do': '⠙',
     'go': '⠛',
     'have': '⠓',
-    'in': '⠊',
-    'it': '⠊',
-    'that': '⠹',
-    'this': '⠹⠱',  # Example: 'this' as a combination
+    'in': '⠔', 
+    'it': '⠭', 
+    'that': '⠞',
+    'this': '⠹',  
     'you': '⠽',
-    'she': '⠎⠓',
-    'he': '⠓',
+    'she': '⠩⠑', 
+    'he': '⠓⠑',  
     'they': '⠮⠽',
     'we': '⠺⠑',
     # Add more contractions as needed
 }
+
+# Reverse the contractions for decoding
+BRAILLE_TO_GRADE2 = {v: k for k, v in GRADE2_CONTRACTIONS.items()}
+
+# Define the number sign in Braille
+NUMBER_SIGN = '⠼'
 
 # Define the capital sign in Braille
 CAPITAL_SIGN = '⠠'
@@ -45,7 +63,7 @@ CAPITAL_SIGN = '⠠'
 def translate_to_grade2_braille(text):
     """
     Translates English text to a simplified version of Grade 2 Braille.
-    Note: This implementation handles only a subset of Grade 2 contractions.
+    This implementation handles a subset of Grade 2 contractions and numeric content.
 
     :param text: The English text to translate.
     :return: A string representing the translated Braille.
@@ -56,6 +74,21 @@ def translate_to_grade2_braille(text):
     for word in words:
         word_braille = ''
         original_word = word  # Save original for debugging
+
+        # Handle numbers
+        if word.isdigit():
+            # Add the number sign to indicate numeric mode
+            word_braille += NUMBER_SIGN
+            for digit in word:
+                braille_char = BRAILLE_NUMBERS.get(digit, '')
+                if braille_char:
+                    print(f"Digit match: '{digit}' -> '{braille_char}'")
+                else:
+                    print(f"No Braille mapping for digit: '{digit}'")
+                word_braille += braille_char
+            braille += word_braille + ' '
+            continue  # Skip the rest of the processing for digits
+
         # Check if the word is capitalized
         if word[0].isupper():
             word_braille += CAPITAL_SIGN
@@ -93,6 +126,72 @@ def translate_to_grade2_braille(text):
                         print(f"No Braille mapping for character: '{char}'")
                     word_braille += braille_char
                     i += 1
+
         braille += word_braille + ' '
-    
+
     return braille.strip()
+
+def translate_from_braille(braille_text):
+    """
+    Translates Braille text back to English, handling Grade 2 contractions on a word basis.
+    If a word doesn't match a Grade 2 contraction, it is translated letter-by-letter (Grade 1).
+
+    :param braille_text: The Braille text to translate.
+    :return: A string representing the English translation.
+    """
+    text = ''
+    words = braille_text.split(' ')  # Use space to split words
+
+    for word in words:
+        word_text = ''
+        i = 0  # Initialize character pointer
+        capitalized = False  # Flag to track capitalization
+
+        while i < len(word):
+            # Check for capital sign
+            # Handle capital sign
+            if word[i] == CAPITAL_SIGN:
+                i += 1  # Move to the next character
+                if word[i] in BRAILLE_TO_GRADE2:
+                    # Translate contraction after capital sign
+                    contraction_text = BRAILLE_TO_GRADE2[word[i]]
+                    word_text += contraction_text.capitalize()  # Capitalize the contraction
+                    i += 1  # Skip the contraction character
+                    continue
+                else:
+                    capitalized = True  # Set capital flag for next individual character   
+
+            # Check for number sign
+            if word[i] == NUMBER_SIGN:
+                i += 1
+                while i < len(word) and word[i] in BRAILLE_NUMBERS.values():
+                    for digit, braille_char in BRAILLE_NUMBERS.items():
+                        if word[i] == braille_char:
+                            word_text += digit
+                            break
+                    i += 1
+                continue
+
+            # Handle Grade 2 contractions
+            if word in BRAILLE_TO_GRADE2:
+                print(f"Word-level contraction found: '{word}' -> '{BRAILLE_TO_GRADE2[word]}'")
+                word_text = BRAILLE_TO_GRADE2[word]
+                capitalized = False  # Reset capitalization after applying
+                break  # Move to the next word
+
+            # Decode individual letters (Grade 1 Braille)
+            char_braille = word[i]
+            char_text = BRAILLE_TO_GRADE1.get(char_braille, None)
+            if char_text:
+                # Apply capitalization if the flag is set
+                if capitalized:
+                    char_text = char_text.upper()
+                    capitalized = False  # Reset capitalization after applying
+                word_text += char_text
+            else:
+                print(f"No English mapping for Braille character: '{char_braille}'")
+            i += 1
+
+        text += word_text + ' '
+
+    return text.strip()

@@ -2,9 +2,13 @@ import os
 import nltk
 from nltk import CFG
 from nltk.parse import ChartParser
+import re
 
-# Import the Braille translator
+# Import the Text to Braille translator
 from braille_translator import translate_to_grade2_braille
+
+# Import the Braille to Text translator
+from braille_translator import translate_from_braille
 
 def read_pos_files(grammar_dir):
     """
@@ -53,14 +57,17 @@ def construct_grammar(lexicon):
     '''
     S=sentence, VP=verb phrase, NP=noun phrase,
     PP=prepositional phrase, DT=determiner, Vi=intransitive verb,
-    Vt=transitive verb, NN=noun, PRP =Pronoun, IN=preposition
+    Vt=transitive verb, NN=noun, PRP =Pronoun, IN=preposition, NUM=number
     '''
     grammar_rules = """
     S -> NP VP 
+    S -> NP
+    S -> VP
+    S -> NUM
     S -> S and S
-    S -> NP Aux not VP
 
     VP -> Vi
+    VP -> Vt
     VP -> Vt NP
     VP -> Vt Adv
     VP -> Aux VP
@@ -74,15 +81,20 @@ def construct_grammar(lexicon):
     NP -> DT NN
     NP -> NP PP
     NP -> NN
+    NP -> NUM NN
     NP -> NP and NP
     NP -> DT Adj NN
+    NP -> NP Aux PRP
     NP -> PRP NN
 
     PP -> IN NP
     PP -> IN VP
 
+    NUM -> NUM NUM
+    
     not -> 'not'
     and -> 'and'
+    NUM -> '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0'
     """
 
     # Add terminal productions from lexicon
@@ -93,6 +105,29 @@ def construct_grammar(lexicon):
 
     return grammar_rules
 
+def preprocess_sentence(sentence):
+    """
+    Preprocesses a sentence to ensure numbers are separated and properly tokenized.
+    """
+    sentence = re.sub(r'(\d+)', r' \1 ', sentence)
+    return sentence
+
+def custom_tokenize(sentence):
+    """
+    Custom tokenizer that splits multi-digit numbers into individual digits
+    and retains other tokens as-is.
+
+    :param sentence: The input sentence to tokenize.
+    :return: A list of tokens.
+    """
+    tokens = []
+    for word in sentence.split():
+        if word.isdigit():  # Check if the word is a multi-digit number
+            tokens.extend(list(word))  # Split digits into individual tokens
+        else:
+            tokens.append(word)  # Add non-digit words as-is
+    return tokens
+
 def parse_sentence(parser, sentence):
     """
     Parses a sentence and prints all possible parse trees.
@@ -101,10 +136,21 @@ def parse_sentence(parser, sentence):
     :param sentence: A string representing the sentence to parse.
     :return: Parsed sentence as a string.
     """
-    tokens = nltk.word_tokenize(sentence)
-    print(f"\nParsing sentence: '{sentence}'")
-    parse_trees = list(parser.parse(tokens))
+    # Preprocess the sentence to handle numbers correctly
+    sentence = preprocess_sentence(sentence)
     
+    # tokens = nltk.word_tokenize(sentence)
+    tokens = custom_tokenize(sentence)  # Use custom tokenizer
+    print(f"\nParsing sentence: '{sentence}'")
+    print(f"\nTokenized sentence: {tokens}")
+    parse_trees = list(parser.parse(tokens))
+
+    try:
+        parse_trees = list(parser.parse(tokens))
+    except Exception as e:
+        print(f"Error parsing sentence: {e}")
+        return None
+
     if not parse_trees:
         print("No parse trees found.")
         return None
@@ -158,7 +204,37 @@ def main():
         'The cat sucks at eating food',
 
         'The cat will not eat its food',
+        'The book is mine',
+        'That cat is hers',
+        '4 dogs are barking',
+        'That dog is mine',
+        '80'
     ]
+
+    # Define sample Braille sentences (Grade 1 and Grade 2 Braille)
+    sample_brailles = [
+        # "The cat sits"
+        "⠮ ⠉⠁⠞ ⠎⠊⠞⠎",
+
+        # "The cat sat and the dog barked"
+        "⠮ ⠉⠁⠞ ⠎⠁⠞ ⠯ ⠮ ⠙⠕⠛ ⠃⠁⠗⠅⠑⠙",
+
+        # "The cat did not sit"
+        "⠮ ⠉⠁⠞ ⠙⠊⠙ ⠝⠕⠞ ⠎⠊⠞",
+
+        # "The cat will not eat food"
+        "⠮ ⠉⠁⠞ ⠺⠊⠇⠇ ⠝⠕⠞ ⠑⠁⠞ ⠋⠕⠕⠙",
+
+        # "4 dogs are barking"
+        "⠼⠙ ⠙⠕⠛⠎ ⠁⠗⠑ ⠃⠁⠗⠅⠊⠝⠛",
+        
+        # "The book is mine"
+        "⠠⠮ ⠃⠕⠕⠅ ⠊⠎ ⠍⠊⠝⠑",
+
+        # "That cat is hers"
+        "⠞ ⠉⠁⠞ ⠊⠎ ⠓⠑⠗⠎",
+    ]
+
 
     # Parse each sentence and translate to Braille
     for sentence in sentences:
@@ -171,6 +247,21 @@ def main():
                 # Optionally, save the Braille translation to a file
                 # with open('braille_output.txt', 'a', encoding='utf-8') as braille_file:
                 #     braille_file.write(f"{sentence}\n{braille_translation}\n")
+
+                # # Translate the Braille back to text
+                # text_translation = translate_from_braille(braille_translation)
+                # if text_translation:
+                #     print("\nTranslated Back to Text:")
+                #     print(text_translation)
+                # else:
+                #     print("\nFailed to translate Braille back to text.")
+                # Translate each sample Braille sentence back to text
+                
+    print("\nTranslating Sample Braille Sentences Back to Text:\n")
+    for braille_text in sample_brailles:
+        print(f"Braille Input: {braille_text}")
+        translated_text = translate_from_braille(braille_text)
+        print(f"Translated Text: {translated_text}\n")
 
 if __name__ == "__main__":
     main()

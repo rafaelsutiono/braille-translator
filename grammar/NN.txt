@@ -1871,6 +1871,7 @@ documentary
 documentation
 doe
 dog
+dogs
 doggie
 dogsled
 dogwood
