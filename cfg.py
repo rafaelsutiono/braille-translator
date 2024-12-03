@@ -23,9 +23,13 @@ def read_pos_files(grammar_dir):
         'DT': 'DT.txt',
         'NN': 'NN.txt',
         'PRP': 'PRP.txt',
-        'IN': 'IN.txt',
+        'PRE': 'PRE.txt',
         'Aux': 'Axv.txt',
         'Adv': 'Adv.txt',
+        'CONJ': 'CONJ.txt',
+        'NUM':  'NUM.txt',
+        'NEG': 'NEG.txt',
+        'Adj': 'Adj.txt',
     }
 
     lexicon = {}
@@ -57,14 +61,16 @@ def construct_grammar(lexicon):
     '''
     S=sentence, VP=verb phrase, NP=noun phrase,
     PP=prepositional phrase, DT=determiner, Vi=intransitive verb,
-    Vt=transitive verb, NN=noun, PRP =Pronoun, IN=preposition, NUM=number
+    Vt=transitive verb, NN=noun, PRP=Pronoun, CONJ=conjunction, Aux=auxiliary verb,
+    Adv=adverb, Adj=adjective, PRE=Preposition
+    NEG=negatio, NUM=number
     '''
     grammar_rules = """
     S -> NP VP 
     S -> NP
     S -> VP
     S -> NUM
-    S -> S and S
+    S -> S CONJ S
 
     VP -> Vi
     VP -> Vt
@@ -72,29 +78,26 @@ def construct_grammar(lexicon):
     VP -> Vt Adv
     VP -> Aux VP
     VP -> Adj VP
-    VP -> Aux not VP
+    VP -> Aux NEG VP
     VP -> Vt PP
-    VP -> VP and VP
-    VP -> VP not VP
-    VP -> to VP
+    VP -> VP CONJ VP
+    VP -> VP NEG VP
+    VP -> PRE VP
 
     NP -> DT NN
     NP -> NP PP
     NP -> NN
     NP -> NUM NN
-    NP -> NP and NP
+    NP -> NP CONJ NP
+    NP -> Adj NN
     NP -> DT Adj NN
     NP -> NP Aux PRP
     NP -> PRP NN
 
-    PP -> IN NP
-    PP -> IN VP
+    PP -> PRE NP
+    PP -> PRE VP
 
     NUM -> NUM NUM
-    
-    not -> 'not'
-    and -> 'and'
-    NUM -> '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0'
     """
 
     # Add terminal productions from lexicon
@@ -208,7 +211,10 @@ def main():
         'That cat is hers',
         '4 dogs are barking',
         'That dog is mine',
-        '80'
+        'cat and dog',
+        'angry cat',
+        'Will run',
+        'Eat food on table'
     ]
 
     # Define sample Braille sentences (Grade 1 and Grade 2 Braille)
@@ -233,6 +239,7 @@ def main():
 
         # "That cat is hers"
         "⠞ ⠉⠁⠞ ⠊⠎ ⠓⠑⠗⠎",
+        "⠠⠞ ⠙⠕⠛ ⠊⠎ ⠍⠊⠝⠑",
     ]
 
 

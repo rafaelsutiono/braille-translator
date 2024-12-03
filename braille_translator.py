@@ -86,7 +86,7 @@ def translate_to_grade2_braille(text):
                 else:
                     print(f"No Braille mapping for digit: '{digit}'")
                 word_braille += braille_char
-            braille += word_braille + ' '
+            braille += word_braille + ''
             continue  # Skip the rest of the processing for digits
 
         # Check if the word is capitalized
