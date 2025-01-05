@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 grammar_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "grammar"))
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Main\Coding\.vscode\Semester 5\CompilationTechnique\braille-translator-main\build\assets\frame0") #Just Changed the pathway to work on my laptop :)
+ASSETS_PATH = OUTPUT_PATH / Path(r"C:\JohnDoe\braille-translator\build\assets\frame0") # change this to the correct frame0 path on your machine
 
 
 def relative_to_assets(path: str) -> Path:
