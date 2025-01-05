@@ -71,6 +71,7 @@ def construct_grammar(lexicon):
     S -> VP
     S -> NUM
     S -> S CONJ S
+    CONJ -> CONJ CONJ
 
     VP -> Vi
     VP -> Vt

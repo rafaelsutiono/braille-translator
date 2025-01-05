@@ -75,19 +75,15 @@ def translate_to_grade2_braille(text):
         word_braille = ''
         original_word = word  # Save original for debugging
 
-        # Handle numbers
+        # Handle numbers (Changed this as well (Galih))
         if word.isdigit():
-            # Add the number sign to indicate numeric mode
-            word_braille += NUMBER_SIGN
+            word_braille += NUMBER_SIGN  # Add numeric mode indicator
             for digit in word:
-                braille_char = BRAILLE_NUMBERS.get(digit, '')
-                if braille_char:
-                    print(f"Digit match: '{digit}' -> '{braille_char}'")
-                else:
-                    print(f"No Braille mapping for digit: '{digit}'")
-                word_braille += braille_char
-            braille += word_braille + ''
-            continue  # Skip the rest of the processing for digits
+                word_braille += BRAILLE_NUMBERS.get(digit, '')
+
+        # Add space to separate numbers from subsequent letters
+            braille += word_braille + ' '  # Ensure a space follows numbers
+            continue
 
         # Check if the word is capitalized
         if word[0].isupper():
@@ -105,10 +101,11 @@ def translate_to_grade2_braille(text):
                 contraction_found = False
                 for contraction in sorted(GRADE2_CONTRACTIONS.keys(), key=lambda x: len(x), reverse=True):
                     contraction_end = i + len(contraction)
-                    # Match contraction only if it fits completely and is bounded
+                    # Match contraction only if it fits completely and is bounded (I chaged this abit (Galih))
                     if (
                         word[i:contraction_end] == contraction
-                        and (contraction_end == len(word) or not word[contraction_end].isalpha())
+                        and (i == 0 or not word[i - 1].isalpha())  # Start boundary check
+                        and (contraction_end == len(word) or not word[contraction_end].isalpha())  # End boundary check
                     ):
                         # Log contraction match
                         print(f"Contraction match: '{word[i:contraction_end]}' in '{original_word}' -> '{GRADE2_CONTRACTIONS[contraction]}'")
